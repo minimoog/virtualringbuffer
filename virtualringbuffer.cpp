@@ -17,6 +17,11 @@
 #include <sys/mman.h>
 #include <stddef.h>
 
+/**
+ * Constructor
+ *
+ * @param capacity capacity of ring buffer, it will be rounded to nearest page size
+ */
 VirtualRingBuffer::VirtualRingBuffer(size_t capacity) :
     m_readOffset(0),
     m_writeOffset(0)
@@ -34,11 +39,16 @@ VirtualRingBuffer::VirtualRingBuffer(size_t capacity) :
     if (m_buffer == MAP_FAILED)
         return;
 
+    // only Linux
     if (-1 == remap_file_pages((char *)m_buffer + m_bufferSize, m_bufferSize, 0, 0, 0)) {
+        // ### TODO
         return;
     }
 }
 
+/**
+ * Destructor
+ */
 VirtualRingBuffer::~VirtualRingBuffer()
 {
     if (-1 == munmap(m_buffer, 2 * m_bufferSize)) {
@@ -46,21 +56,43 @@ VirtualRingBuffer::~VirtualRingBuffer()
     }
 }
 
+/**
+ * Gets pointer where you can put data in the ring buffer.
+ * After you write you need to call commit method
+ *
+ * @return address
+ */
 void * VirtualRingBuffer::reserve()
 {
     return m_buffer + m_writeOffset;
 }
 
+/**
+ * Commits data into the ring buffer
+ *
+ * @param count size of the commited data
+ */
 void VirtualRingBuffer::commit(size_t count)
 {
     m_writeOffset += count;
 }
 
+/**
+ * Gets data from end of the ring buffer.
+ * You must call decommit to free data.
+ *
+ * @return address
+ */
 void * VirtualRingBuffer::take()
 {
     return m_buffer + m_readOffset;
 }
 
+/**
+ * Decommits (frees) data in the ring buffer
+ *
+ * @param count size of data to be freed
+ */
 void VirtualRingBuffer::decommit(size_t count)
 {
     m_readOffset += count;
@@ -71,6 +103,11 @@ void VirtualRingBuffer::decommit(size_t count)
     }
 }
 
+/**
+ * Gets the size of data in ring buffer
+ *
+ * @return size of the data
+ */
 size_t VirtualRingBuffer::size() const
 {
     int amount = m_writeOffset - m_readOffset;

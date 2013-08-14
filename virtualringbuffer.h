@@ -17,6 +17,9 @@
 
 #include <stdlib.h>
 
+/**
+ * Implementation of ring buffer with virtual mapping trick
+ */
 class VirtualRingBuffer
 {
 public:
