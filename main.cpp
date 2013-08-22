@@ -12,10 +12,10 @@ int main()
     memset(indata, '1', 2000);
 
     //simple test
-    memcpy(vbrb.reserve(), indata, 2000);
+    memcpy(vbrb.writePointer(), indata, 2000);
     vbrb.commit(2000);
 
-    memcpy(outdata, vbrb.take(), 2000);
+    memcpy(outdata, vbrb.readPointer(), 2000);
     vbrb.decommit(2000);
 
     if (memcmp(outdata, indata, 2000) != 0)
@@ -26,10 +26,10 @@ int main()
     for (int i = 0; i < 100; ++i) {
         memset(indata, '0' + i, 2000);
 
-        memcpy(vbrb.reserve(), indata, 2000);
+        memcpy(vbrb.writePointer(), indata, 2000);
         vbrb.commit(2000);
 
-        memcpy(outdata, vbrb.take(), 2000);
+        memcpy(outdata, vbrb.readPointer(), 2000);
         vbrb.decommit(2000);
 
         if (memcmp(outdata, indata, 2000) != 0)
@@ -42,11 +42,11 @@ int main()
 
     for (int i = 0; i < 5; ++i) {
         memset(indata, '0' + i, 2000);
-        memcpy(vbrb.reserve(), indata, 2000);
+        memcpy(vbrb.writePointer(), indata, 2000);
         vbrb.commit(2000);
     }
 
-    memcpy(outdata, vbrb.take(), 1808);
+    memcpy(outdata, vbrb.readPointer(), 1808);
     vbrb.decommit(1808);
 
     for (int i = 0; i < 1808; ++i) {
@@ -54,7 +54,7 @@ int main()
             printf("failed on wrapped test\n");
     }
 
-    memcpy(outdata, vbrb.take(), 192);
+    memcpy(outdata, vbrb.readPointer(), 192);
     vbrb.decommit(192);
 
     for (int i = 0; i < 192; ++i) {

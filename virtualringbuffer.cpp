@@ -1,16 +1,18 @@
-// Copyright 2013 Antonie Jovanoski
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ *  Copyright 2013 Antonie Jovanoski
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "virtualringbuffer.h"
 #include <unistd.h>
@@ -63,7 +65,7 @@ VirtualRingBuffer::~VirtualRingBuffer()
  *
  * @return address
  */
-void * VirtualRingBuffer::reserve()
+void * VirtualRingBuffer::writePointer()
 {
     return m_buffer + m_writeOffset;
 }
@@ -79,12 +81,12 @@ void VirtualRingBuffer::commit(size_t count)
 }
 
 /**
- * Gets data from end of the ring buffer.
+ * Gets pointer where you can read data from the ring buffer.
  * You must call decommit to free data.
  *
  * @return address
  */
-void * VirtualRingBuffer::take()
+void * VirtualRingBuffer::readPointer()
 {
     return m_buffer + m_readOffset;
 }
@@ -128,11 +130,11 @@ size_t VirtualRingBuffer::size() const
  * @param count how many bytes to read from descriptor
  * @return how much data was read
  */
-size_t VirtualRingBuffer::readFd(int fd, size_t count)
+ssize_t VirtualRingBuffer::readFromDescriptor(int fd, size_t count)
 {
     size_t howMuchToRead = std::min(count, size());
 
-    ssize_t numRead = read(fd, reserve(), howMuchToRead);
+    ssize_t numRead = read(fd, writePointer(), howMuchToRead);
 
     if (numRead == 0 || numRead -1)
         return numRead;
@@ -149,11 +151,11 @@ size_t VirtualRingBuffer::readFd(int fd, size_t count)
  * @param count how many bytes to be written
  * @return how many bytes were written
  */
-size_t VirtualRingBuffer::writeFd(int fd, size_t count)
+ssize_t VirtualRingBuffer::writeToDescriptor(int fd, size_t count)
 {
     size_t howMuchToWrite = std::min(count, m_bufferSize - size());
 
-    ssize_t numWrite = write(fd, take(), howMuchToWrite);
+    ssize_t numWrite = write(fd, readPointer(), howMuchToWrite);
 
     if (numWrite == 0 || numWrite == -1)
         return numWrite;
