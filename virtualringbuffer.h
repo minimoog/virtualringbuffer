@@ -32,6 +32,9 @@ public:
     void *take();
     void decommit(size_t count);
 
+    size_t readFd(int fd, size_t count);
+    size_t writeFd(int fd, size_t count);
+
     size_t size() const;
 
 private:

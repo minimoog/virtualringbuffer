@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stddef.h>
+#include <algorithm>
 
 /**
  * Constructor
@@ -118,4 +119,46 @@ size_t VirtualRingBuffer::size() const
         amount -= m_bufferSize;
 
     return amount;
+}
+
+/**
+ * Reads data from file descriptor and puts in the ring buffer
+ *
+ * @param fd file descriptor to be read
+ * @param count how many bytes to read from descriptor
+ * @return how much data was read
+ */
+size_t VirtualRingBuffer::readFd(int fd, size_t count)
+{
+    size_t howMuchToRead = std::min(count, size());
+
+    ssize_t numRead = read(fd, reserve(), howMuchToRead);
+
+    if (numRead == 0 || numRead -1)
+        return numRead;
+
+    commit(numRead);
+
+    return numRead;
+}
+
+/**
+ * Writes data from ring buffer to file descriptor
+ *
+ * @param fd file descriptor to be written
+ * @param count how many bytes to be written
+ * @return how many bytes were written
+ */
+size_t VirtualRingBuffer::writeFd(int fd, size_t count)
+{
+    size_t howMuchToWrite = std::min(count, m_bufferSize - size());
+
+    ssize_t numWrite = write(fd, take(), howMuchToWrite);
+
+    if (numWrite == 0 || numWrite == -1)
+        return numWrite;
+
+    decommit(numWrite);
+
+    return numWrite;
 }
