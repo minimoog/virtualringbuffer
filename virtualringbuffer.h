@@ -42,6 +42,9 @@ public:
     size_t size() const;
 
 private:
+    VirtualRingBuffer(const VirtualRingBuffer& );
+    VirtualRingBuffer& operator= (const VirtualRingBuffer& );
+
     char *m_buffer;
     size_t m_bufferSize;
     int m_writeOffset;
