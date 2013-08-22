@@ -28,6 +28,8 @@ public:
     VirtualRingBuffer(size_t capacity);
     virtual ~VirtualRingBuffer();
 
+    size_t capacity() const { return m_bufferSize; }
+
     void *writePointer();
     void commit(size_t count);
 
